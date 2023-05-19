@@ -60,7 +60,14 @@ namespace CK1
                 if(svhp.Gender == true)
                 {
                     rd_Nam.Checked = true;
-                } else rd_Nu.Checked = true;    
+                    rd_Nam.Enabled = true;
+                }
+                else
+                {
+                    rd_Nu.Checked = true;
+                    rd_Nu.Enabled = true;
+                }
+
             }
         }
 
@@ -85,7 +92,6 @@ namespace CK1
                 MessageBox.Show("Invalid input. Please enter valid numbers for the grades.");
             }
         }
-
 
 
         private void txt_DiemTB_TextChanged(object sender, EventArgs e)
@@ -164,6 +170,16 @@ namespace CK1
                 {
                     txt_Name.Text = sv.Name;
                     cbb_LopSH.Text = sv.LSH.ToString();
+                    if (sv.Gender)
+                    {
+                        rd_Nam.Checked = true;
+                        rd_Nu.Enabled = false;
+                    }
+                    else
+                    {
+                        rd_Nu.Checked = true;
+                        rd_Nam.Enabled = false;
+                    }
 
                     txt_Name.Enabled = false;
                     cbb_LopSH.Enabled = false;

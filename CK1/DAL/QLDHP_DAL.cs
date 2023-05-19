@@ -44,78 +44,38 @@ namespace CK1.DAL
             }
         }
 
-        public List<SinhVienHocPhan> GetAllSV(string name)
+        public List<SinhVienHocPhan> GetAllSV(string MaHP, string name)
         {
-            using (var context = new QLDHP())
+            using (var db = new QLDHP())
             {
-                var result = context.SVs
-                    .Join(context.HPSVs, sv => sv.MSSV, hpsv => hpsv.MSSV, (sv, hpsv) => new { sv, hpsv })
-                    .Join(context.HPs, sh => sh.hpsv.MaHocPhan, hp => hp.MaHocPhan, (sh, hp) => new SinhVienHocPhan
+                var result = db.HPSVs
+                    .Where(sv => (MaHP == "0" ? sv.SVs.Name.Contains(name) : (sv.MaHocPhan == MaHP && sv.SVs.Name.Contains(name))))
+                    .Select(sv => new SinhVienHocPhan
                     {
-                        MSSV = sh.sv.MSSV,
-                        MaHP = hp.MaHocPhan,
-                        Name = sh.sv.Name,
-                        LSH = sh.sv.LSH,
-                        TenHocPhan = hp.NameHocPhan,
-                        DBT = sh.hpsv.DBT,
-                        DGK = sh.hpsv.DGK,
-                        DCK = sh.hpsv.DCK,
-                        DTK = (sh.hpsv.DBT + sh.hpsv.DGK) * 0.2 + sh.hpsv.DCK * 0.3,
-                        NgayThi = sh.hpsv.NgayThi,
-                        Gender = sh.sv.Gender,
-                    })
-                    .Where(svhpsvhp => svhpsvhp.Name.Contains(name))
-                    .ToList();
+                        MSSV = sv.MSSV,
+                        MaHP = sv.HPs.MaHocPhan,
+                        Name = sv.SVs.Name,
+                        LSH = sv.SVs.LSH,
+                        TenHocPhan = sv.HPs.NameHocPhan,
+                        DBT = sv.DBT,
+                        DGK = sv.DGK,
+                        DCK = sv.DCK,
+                        DTK = (sv.DBT + sv.DGK) * 0.2 + sv.DCK * 0.3,
+                        NgayThi = sv.NgayThi,
+                        Gender = sv.SVs.Gender,
+                    }
+                ).ToList();
                 return result;
             }
         }
 
-
-        public List<SinhVienHocPhan> GetApartSV(string MaHP, string name)
-        {
-            using (var context = new QLDHP())
-            {
-                var result = context.SVs
-                    .Join(context.HPSVs, sv => sv.MSSV, hpsv => hpsv.MSSV, (sv, hpsv) => new { sv, hpsv })
-                    .Where(svhpsvhp => svhpsvhp.sv.Name.Contains(name) && svhpsvhp.hpsv.MaHocPhan == MaHP)
-                    .Join(context.HPs, sh => sh.hpsv.MaHocPhan, hp => hp.MaHocPhan, (sh, hp) => new SinhVienHocPhan
-                    {
-                        MSSV = sh.sv.MSSV,
-                        MaHP = hp.MaHocPhan,
-                        Name = sh.sv.Name,
-                        LSH = sh.sv.LSH,
-                        TenHocPhan = hp.NameHocPhan,
-                        DBT = sh.hpsv.DBT,
-                        DGK = sh.hpsv.DGK,
-                        DCK = sh.hpsv.DCK,
-                        DTK = (sh.hpsv.DBT + sh.hpsv.DGK) * 0.2 + sh.hpsv.DCK * 0.3,
-                        NgayThi = sh.hpsv.NgayThi,
-                        Gender = sh.sv.Gender,
-                    })
-                    
-                    .ToList();
-                return result;
-            }
-        }
-
-
-        public void DelSV(string MSSV)
+        public void DelSV(string MSSV, string MaHP)
         {
             using(QLDHP db = new QLDHP())
             {
-                var s1 = db.HPSVs.Where(p => p.MSSV == MSSV);
-                foreach (var hpSv in s1)
-                {
-                    db.HPSVs.Remove(hpSv);
-                }
+                var s1 = db.HPSVs.FirstOrDefault(p => p.MSSV == MSSV && p.MaHocPhan == MaHP);
+                db.HPSVs.Remove(s1);
                 db.SaveChanges();
-
-                var s = db.SVs.Where(p => p.MSSV == MSSV).FirstOrDefault();
-                if (s != null)
-                {
-                    db.SVs.Remove(s);
-                    db.SaveChanges();
-                }
             }
         }
 
@@ -125,7 +85,7 @@ namespace CK1.DAL
             {
                 using (QLDHP db = new QLDHP())
                 {
-                    var s = db.SVs.Where(sv => sv.MSSV == svhp.MSSV).Select(sv => sv).FirstOrDefault();
+                    var s = db.SVs.FirstOrDefault(sv => sv.MSSV == svhp.MSSV);
                     if (s != null)
                     {
                         s.MSSV = svhp.MSSV;
@@ -142,38 +102,28 @@ namespace CK1.DAL
 
                         db.SaveChanges();
                     }
-
-                    /*var s2 = db.HPs.Where(p => p.MaHocPhan == svhp.MaHP).Select(hp => hp).FirstOrDefault();
-                    s2.MaHocPhan = db.HPs.Where(hp => hp.NameHocPhan == svhp.TenHocPhan).Select(sv => sv.MaHocPhan).FirstOrDefault();
-                    s2.NameHocPhan = svhp.TenHocPhan;*/
-                    
                 }
             }
             else
             {
-                bool check = false;
                 using (QLDHP db = new QLDHP())
                 {
-                    foreach(SinhVien i in db.SVs.ToList())
+                    var sv = db.SVs.FirstOrDefault(i => i.MSSV == svhp.MSSV);
+                    if (sv != null)
                     {
-                        if(i.MSSV == svhp.MSSV)
-                        {
-                            db.HPSVs.Add(
-                                new HocPhanSinhVien
-                                {
-                                    MSSV = svhp.MSSV,
-                                    MaHocPhan = db.HPs.Where(hp => hp.NameHocPhan == svhp.TenHocPhan).Select(sv => sv.MaHocPhan).FirstOrDefault(),
-                                    DBT = svhp.DBT,
-                                    DGK = svhp.DGK,
-                                    DCK = svhp.DCK,
-                                    NgayThi = svhp.NgayThi,
-                                }
-                            );
-                            check = true;
-                            break;
-                        }
+                        db.HPSVs.Add(
+                            new HocPhanSinhVien
+                            {
+                                MSSV = svhp.MSSV,
+                                MaHocPhan = db.HPs.FirstOrDefault(hp => hp.NameHocPhan == svhp.TenHocPhan)?.MaHocPhan,
+                                DBT = svhp.DBT,
+                                DGK = svhp.DGK,
+                                DCK = svhp.DCK,
+                                NgayThi = svhp.NgayThi
+                            }
+                        );
                     }
-                    if (!check)
+                    else
                     {
                         db.SVs.Add(
                             new SinhVien
@@ -188,7 +138,7 @@ namespace CK1.DAL
                             new HocPhanSinhVien
                             {
                                 MSSV = svhp.MSSV,
-                                MaHocPhan = db.HPs.Where(hp => hp.NameHocPhan == svhp.TenHocPhan).Select(sv => sv.MaHocPhan).FirstOrDefault(),
+                                MaHocPhan = db.HPs.Where(hp => hp.NameHocPhan == svhp.TenHocPhan).Select(hp => hp.MaHocPhan).FirstOrDefault(),
                                 DBT = svhp.DBT,
                                 DGK = svhp.DGK,
                                 DCK = svhp.DCK,
@@ -196,7 +146,6 @@ namespace CK1.DAL
                             }
                         );
                     }
-
                     db.SaveChanges();
                 }
             }

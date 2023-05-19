@@ -20,7 +20,6 @@ namespace CK1
             SetCBB();
         }
 
-
         public void SetCBB()
         {
             try
@@ -41,8 +40,8 @@ namespace CK1
             
 
             dataGridView1.DataSource = QLDHP_BLL.Instance.GetListSV(MaHP, name);
-            List<string> myArray = new List<string>() { "MSSV","MaHP", "Tên SV", "Lớp SH", "Tên học phần", "Điểm BT", "Điểm GK", "Điểm CK", "Tổng kết", "Ngày thi", "Gender" };
-            for (int i = 0; i < 11; i++)
+            List<string> myArray = new List<string>() { "MSSV", "MaHP", "Tên SV", "Lớp SH", "Tên học phần", "Điểm BT", "Điểm GK", "Điểm CK", "Tổng kết", "Ngày thi", "Gender" };
+            for (int i = 0; i < 10; i++)
             {
                 this.dataGridView1.Columns[i+1].HeaderText = myArray[i];
             }
@@ -71,10 +70,13 @@ namespace CK1
         {
             if(dataGridView1.SelectedRows.Count >= 1)
             {
-                List<string> list = new List<string>(); 
+                List<KeyValuePair<string, string>> list = new List<KeyValuePair<string, string>>();
                 foreach(DataGridViewRow i in dataGridView1.SelectedRows)
                 {
-                    list.Add(i.Cells["MSSV"].Value.ToString());
+                    string key = i.Cells["MSSV"].Value.ToString();
+                    string value = i.Cells["MaHP"].Value.ToString();
+                    KeyValuePair<string, string> pair = new KeyValuePair<string, string>(key, value);
+                    list.Add(pair);
                 }
                 QLDHP_BLL.Instance.DelSV(list);
             }

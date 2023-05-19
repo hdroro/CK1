@@ -49,22 +49,13 @@ namespace CK1.BLL
 
         public List<SinhVienHocPhan> GetListSV(string MaHP, string name)
         {
-            List<SinhVienHocPhan> list = new List<SinhVienHocPhan>();
-            if(MaHP == "0")
-            {
-                list = QLDHP_DAL.Instance.GetAllSV(name);
-            }
-            else
-            {
-                list = QLDHP_DAL.Instance.GetApartSV(MaHP, name);
-            }
-            return list;
+            return QLDHP_DAL.Instance.GetAllSV(MaHP, name);
         }
 
         public SinhVienHocPhan getSVByMSSV(string MSSV, string MaHP)
         {
             SinhVienHocPhan data = null;
-            foreach(SinhVienHocPhan sv in QLDHP_DAL.Instance.GetAllSV("").ToList())
+            foreach(SinhVienHocPhan sv in QLDHP_DAL.Instance.GetAllSV("0","").ToList())
             {
                 if(sv.MSSV == MSSV && sv.TenHocPhan == MaHP)
                 {
@@ -77,7 +68,7 @@ namespace CK1.BLL
         public SinhVienHocPhan getSVByMSSV2(string MSSV)
         {
             SinhVienHocPhan data = null;
-            foreach (SinhVienHocPhan sv in QLDHP_DAL.Instance.GetAllSV("").ToList())
+            foreach (SinhVienHocPhan sv in QLDHP_DAL.Instance.GetAllSV("0","").ToList())
             {
                 if (sv.MSSV == MSSV )
                 {
@@ -87,11 +78,11 @@ namespace CK1.BLL
             return data;
         }
 
-        public void DelSV(List<string> liMSSV)
+        public void DelSV(List<KeyValuePair<string, string>> list)
         {
-            foreach(string MSSV in liMSSV)
+            foreach (KeyValuePair<string, string> pair in list)
             {
-                QLDHP_DAL.Instance.DelSV(MSSV);
+                QLDHP_DAL.Instance.DelSV(pair.Key, pair.Value);
             }
         }
 
